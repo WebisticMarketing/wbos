@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
         roles: user.roles.map((ur) => ur.role.name),
       },
       JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "30d" }
     );
     console.log("🔐 [LOGIN] JWT token generated successfully");
 
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 30, // 30 days in seconds
     });
 
     console.log("🔐 [LOGIN] Login successful for:", email);

@@ -65,40 +65,54 @@ export default function WbosLayout({
 
     let isMounted = true;
 
-    const checkBusinessStatus = async () => {
+    const refreshSession = async () => {
       try {
-        const res = await fetch("/api/wbos/auth/me", {
+        // Try to refresh the token silently
+        const refreshRes = await fetch("/api/wbos/auth/refresh", {
+          method: "POST",
           cache: "no-store",
           headers: {
             "Cache-Control": "no-cache",
           },
         });
-
-        if (res.status === 403) {
-          const logoutRes = await fetch("/api/wbos/auth/logout", {
-            method: "POST",
+        
+        if (!refreshRes.ok) {
+          // If refresh fails, check if it's a suspension or other auth issue
+          const res = await fetch("/api/wbos/auth/me", {
+            cache: "no-store",
+            headers: {
+              "Cache-Control": "no-cache",
+            },
           });
-          if (logoutRes.ok) {
-            router.push("/wbos/login?error=suspended");
-          }
-          return;
-        }
 
-        if (!res.ok && res.status !== 403) {
-          router.push("/wbos/login");
+          if (res.status === 403) {
+            const logoutRes = await fetch("/api/wbos/auth/logout", {
+              method: "POST",
+            });
+            if (logoutRes.ok) {
+              router.push("/wbos/login?error=suspended");
+            }
+            return;
+          }
+
+          if (!res.ok && res.status !== 403) {
+            router.push("/wbos/login");
+          }
         }
       } catch (error) {
-        console.debug("Status check failed:", error);
+        console.debug("Session refresh failed:", error);
       }
     };
 
-    checkBusinessStatus();
+    // Initial session check
+    refreshSession();
 
+    // Refresh every 2 minutes to keep session alive
     const intervalId = setInterval(() => {
       if (isMounted) {
-        checkBusinessStatus();
+        refreshSession();
       }
-    }, 15000);
+    }, 120000); // 2 minutes
 
     return () => {
       isMounted = false;
