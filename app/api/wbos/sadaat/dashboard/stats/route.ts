@@ -57,7 +57,23 @@ export async function GET(req: NextRequest) {
     const totalTrips = Number(data.totalTrips) || 0;
     const totalRevenue = Number(data.totalRevenue) || 0;
     const totalExpenses = Number(data.totalExpenses) || 0;
-    const netProfit = totalRevenue - totalExpenses;
+
+    // Fetch total maintenance cost
+    const maintenanceResult = await prisma.busMaintenance.aggregate({
+      _sum: { cost: true },
+      where: { businessId },
+    });
+    const totalMaintenance = Number(maintenanceResult._sum.cost) || 0;
+
+    // Fetch total tyre cost
+    const tyreResult = await prisma.busTyre.aggregate({
+      _sum: { cost: true },
+      where: { businessId },
+    });
+    const totalTyres = Number(tyreResult._sum.cost) || 0;
+
+    // Net Profit = Revenue - Trip Expenses - Maintenance - Tyres
+    const netProfit = totalRevenue - totalExpenses - totalMaintenance - totalTyres;
     const totalSeats = Number(data.totalSeats) || 1;
     const seatsBooked = Number(data.seatsBooked) || 0;
     let occupancyRate = Math.round((seatsBooked / totalSeats) * 100);
