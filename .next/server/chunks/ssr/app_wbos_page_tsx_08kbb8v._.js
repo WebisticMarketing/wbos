@@ -1,0 +1,3 @@
+module.exports=[42985,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(50944);a.s(["default",0,function(){let a=(0,d.useRouter)();return(0,c.useEffect)(()=>{(async()=>{try{let b=await fetch("/api/wbos/auth/me");if(b.ok){let c=await b.json(),d=c.user?.slug||"sadaat";a.replace(`/wbos/${d}`)}else a.replace("/wbos/login")}catch{a.replace("/wbos/login")}})()},[a]),(0,b.jsx)("div",{className:"min-h-screen flex items-center justify-center bg-gray-50",children:(0,b.jsx)("div",{className:"text-gray-500",children:"Redirecting..."})})}])}];
+
+//# sourceMappingURL=app_wbos_page_tsx_08kbb8v._.js.map

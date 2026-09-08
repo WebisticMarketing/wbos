@@ -1,0 +1,3 @@
+{
+  "/api/admin/wbos/businesses/[businessId]/invitations/route": "app/api/admin/wbos/businesses/[businessId]/invitations/route.js"
+}

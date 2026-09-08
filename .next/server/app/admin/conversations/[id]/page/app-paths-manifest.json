@@ -1,0 +1,3 @@
+{
+  "/admin/conversations/[id]/page": "app/admin/conversations/[id]/page.js"
+}

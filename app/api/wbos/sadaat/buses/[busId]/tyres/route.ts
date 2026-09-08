@@ -36,7 +36,7 @@ export async function GET(
     }
 
     const records = await prisma.busTyre.findMany({
-      where: { busId },
+      where: { busId, businessId },
       orderBy: { tyreDate: "desc" },
     });
 
@@ -93,6 +93,7 @@ export async function POST(
     const record = await prisma.busTyre.create({
       data: {
         busId,
+        businessId,
         description: description || "",
         cost: parseNumber(cost),
         notes: notes || "",
