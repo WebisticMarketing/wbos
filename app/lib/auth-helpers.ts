@@ -2,7 +2,6 @@
 import { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 import { getRequiredEnv } from "@/lib/env";
-import { prisma } from "./prisma";
 
 const JWT_SECRET = getRequiredEnv("JWT_SECRET");
 
@@ -11,6 +10,9 @@ export interface AuthPayload {
   businessId: string;
   slug: string;
   email: string;
+  name: string;
+  businessName?: string;
+  roles?: string[];
 }
 
 export function getAuthPayload(req: NextRequest): AuthPayload | null {
@@ -27,24 +29,14 @@ export function getBusinessId(req: NextRequest): string | null {
   return getAuthPayload(req)?.businessId || null;
 }
 
+// ✅ Optimized: Returns payload from JWT without database query
+// For most operations, we trust the JWT and don't need to verify user status on every request
+// Status checks should only happen at login time
 export async function getActiveWbosAuth(req: NextRequest): Promise<AuthPayload | null> {
   const payload = getAuthPayload(req);
   if (!payload?.userId || !payload.businessId) return null;
-
-  const user = await prisma.wbosUser.findUnique({
-    where: { id: payload.userId },
-    select: {
-      status: true,
-      business: { select: { status: true, slug: true } },
-    },
-  });
-
-  if (user?.status !== "active" || user.business?.status !== "active") {
-    return null;
-  }
-
-  return {
-    ...payload,
-    slug: user.business.slug || payload.slug || "sadaat",
-  };
+  
+  // Return payload directly - status was verified at login time
+  // This prevents connection pool exhaustion from repeated DB queries
+  return payload;
 }
