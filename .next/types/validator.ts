@@ -1127,6 +1127,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../app/api/wbos/auth/refresh/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/wbos/auth/refresh">> = Specific
+  const handler = {} as typeof import("../../app/api/wbos/auth/refresh/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../app/api/wbos/auth/register/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/wbos/auth/register">> = Specific

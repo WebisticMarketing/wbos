@@ -89,6 +89,7 @@
   "/api/wbos/auth/login/route": "app/api/wbos/auth/login/route.js",
   "/api/wbos/auth/logout/route": "app/api/wbos/auth/logout/route.js",
   "/api/wbos/auth/me/route": "app/api/wbos/auth/me/route.js",
+  "/api/wbos/auth/refresh/route": "app/api/wbos/auth/refresh/route.js",
   "/api/wbos/auth/register/route": "app/api/wbos/auth/register/route.js",
   "/api/wbos/auth/validate-token/route": "app/api/wbos/auth/validate-token/route.js",
   "/api/wbos/invitations/accept/route": "app/api/wbos/invitations/accept/route.js",
