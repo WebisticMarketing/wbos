@@ -1,7 +1,6 @@
 // app/api/wbos/auth/me/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { prisma } from "@/app/lib/prisma";
 import { getRequiredEnv } from "@/lib/env";
 
 const JWT_SECRET = getRequiredEnv("JWT_SECRET");
@@ -27,72 +26,19 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const user = await prisma.wbosUser.findUnique({
-      where: { id: payload.userId },
-      include: {
-        business: true,
-        roles: {
-          include: {
-            role: {
-              include: {
-                permissions: {
-                  include: {
-                    permission: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 401 }
-      );
-    }
-
-    if (user.status !== "active") {
-      return NextResponse.json(
-        { error: "User account is inactive" },
-        { status: 401 }
-      );
-    }
-
-    if (user.business.status !== "active") {
-      return NextResponse.json(
-        { error: "Business account suspended" },
-        { status: 403 }
-      );
-    }
-
-    const permissions: string[] = [];
-    for (const userRole of user.roles) {
-      for (const rp of userRole.role.permissions) {
-        if (!permissions.includes(rp.permission.name)) {
-          permissions.push(rp.permission.name);
-        }
-      }
-    }
-
-    const roleNames = user.roles.map((ur) => ur.role.name);
-
+    // ✅ Return user info directly from JWT payload - no database query needed
+    // This prevents connection pool exhaustion on Vercel serverless
     return NextResponse.json({
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        businessId: user.businessId,
-        businessName: user.business.name,
-        slug: user.business.slug, // ✅ Included
-        logo: user.business.logo,
-        roles: roleNames,
-        permissions: permissions,
-        status: user.status,
-        avatar: user.avatar,
-        lastLogin: user.lastLogin,
+        id: payload.userId,
+        name: payload.name,
+        email: payload.email,
+        businessId: payload.businessId,
+        businessName: payload.businessName,
+        slug: payload.slug,
+        roles: payload.roles || [],
+        // Note: For fields not in JWT (like permissions, status, avatar, lastLogin),
+        // they would require a DB query. The JWT contains the essential auth data.
       },
     });
   } catch (error) {
