@@ -1,0 +1,3 @@
+{
+  "/api/wbos/auth/validate-token/route": "app/api/wbos/auth/validate-token/route.js"
+}

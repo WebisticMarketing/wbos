@@ -1,0 +1,3 @@
+{
+  "/api/wbos/auth/logout/route": "app/api/wbos/auth/logout/route.js"
+}

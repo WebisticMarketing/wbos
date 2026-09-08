@@ -1,0 +1,3 @@
+{
+  "/api/admin/check-overdue/route": "app/api/admin/check-overdue/route.js"
+}
