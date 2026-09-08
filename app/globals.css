@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: 'kern';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.02em;
+  }
+
+  body {
+    background: #ffffff;
+    color: #0a1628;
+  }
+}
+/* ============================================================
+   DROPDOWN & SELECT STYLING
+   ============================================================ */
+
+/* Dark theme for all select dropdowns */
+select,
+select option {
+  background-color: #0b1120 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix for select dropdown arrow */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* Fix for select dropdown options */
+select option {
+  background-color: #0b1120 !important;
+  color: #ffffff !important;
+  padding: 8px 12px !important;
+}
+
+/* Dark theme for inputs */
+input,
+textarea {
+  color-scheme: dark;
+}
+
+/* Fix for date picker */
+input[type="date"] {
+  color-scheme: dark;
+}
+
+/* Focus state */
+select:focus {
+  outline: none;
+  border-color: #0068e3 !important;
+  box-shadow: 0 0 0 2px rgba(0, 104, 227, 0.3);
+}
+
+.expense-light-page input,
+.expense-light-page textarea,
+.expense-light-page select,
+.expense-light-page select option {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  color-scheme: light;
+}
+
+.expense-light-page input::placeholder,
+.expense-light-page textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+.expense-light-page input[type="date"],
+.expense-light-page input[type="month"] {
+  color-scheme: light;
+}
+
+.expense-light-page select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
