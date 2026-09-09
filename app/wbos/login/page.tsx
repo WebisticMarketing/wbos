@@ -39,23 +39,32 @@ function LoginForm() {
     setSuccess("");
 
     try {
+      console.log("🔐 [LOGIN PAGE] Attempting login for:", email);
+      
       const response = await fetch("/api/wbos/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, rememberMe }),
       });
 
+      console.log("🔐 [LOGIN PAGE] Response status:", response.status);
       const data = await response.json();
+      console.log("🔐 [LOGIN PAGE] Response data:", data);
 
       if (!response.ok) {
-        setError(data.error || "Login failed");
+        const errorMsg = data.error || data.details || "Login failed";
+        console.error("🔐 [LOGIN PAGE] Login failed:", errorMsg);
+        setError(errorMsg);
         setLoading(false);
         return;
       }
 
-      router.push(`/wbos/${data.user.slug}`);
-      router.refresh();
+      console.log("🔐 [LOGIN PAGE] Login successful, redirecting to:", `/wbos/${data.user.slug}`);
+      
+      // Force a full page reload to ensure cookies are properly set
+      window.location.href = `/wbos/${data.user.slug}`;
     } catch (error) {
+      console.error("🔐 [LOGIN PAGE] Unexpected error:", error);
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
