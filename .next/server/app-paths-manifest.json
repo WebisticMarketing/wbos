@@ -86,6 +86,7 @@
   "/api/admin/wbos/users/route": "app/api/admin/wbos/users/route.js",
   "/api/chat/route": "app/api/chat/route.js",
   "/api/contact/route": "app/api/contact/route.js",
+  "/api/wbos/[slug]/dashboard/stats/route": "app/api/wbos/[slug]/dashboard/stats/route.js",
   "/api/wbos/auth/login/route": "app/api/wbos/auth/login/route.js",
   "/api/wbos/auth/logout/route": "app/api/wbos/auth/logout/route.js",
   "/api/wbos/auth/me/route": "app/api/wbos/auth/me/route.js",
