@@ -26,7 +26,9 @@ interface Business {
   phone: string;
   status: string;
   createdAt: string;
+  clientId?: string;
   client: {
+    id?: string;
     name: string;
     email: string;
   };
@@ -142,57 +144,64 @@ export default function AdminWbosPage() {
                   </td>
                 </tr>
               ) : (
-                filteredBusinesses.map((business) => (
-                  <tr key={business.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {business.logo ? (
-                          <img
-                            src={business.logo}
-                            alt={business.name}
-                            className="w-8 h-8 rounded object-cover border border-white/10"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                            <Building2 className="w-4 h-4 text-blue-400" />
+                filteredBusinesses.map((business) => {
+                  // Use clientId if business.id is missing or invalid
+                  const linkId = business.clientId && (!business.id || business.id.startsWith('client_')) 
+                    ? business.clientId 
+                    : business.id;
+                  
+                  return (
+                    <tr key={business.id} className="hover:bg-white/5 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {business.logo ? (
+                            <img
+                              src={business.logo}
+                              alt={business.name}
+                              className="w-8 h-8 rounded object-cover border border-white/10"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                              <Building2 className="w-4 h-4 text-blue-400" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium text-white">{business.name}</p>
+                            <p className="text-sm text-white/40">{business.email}</p>
                           </div>
-                        )}
-                        <div>
-                          <p className="font-medium text-white">{business.name}</p>
-                          <p className="text-sm text-white/40">{business.email}</p>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-white">{business.client?.name || "—"}</p>
-                      <p className="text-sm text-white/40">{business.client?.email || "—"}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-white/5 text-white/60 text-xs rounded-md capitalize">
-                        {business.industry || "—"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 text-sm text-white/60">
-                        <Users className="w-4 h-4" />
-                        {business._count?.users || 0}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">{getStatusBadge(business.status)}</td>
-                    <td className="px-6 py-4 text-sm text-white/40">
-                      {new Date(business.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/admin/wbos/${business.id}`}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-white">{business.client?.name || "—"}</p>
+                        <p className="text-sm text-white/40">{business.client?.email || "—"}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2 py-1 bg-white/5 text-white/60 text-xs rounded-md capitalize">
+                          {business.industry || "—"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1 text-sm text-white/60">
+                          <Users className="w-4 h-4" />
+                          {business._count?.users || 0}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">{getStatusBadge(business.status)}</td>
+                      <td className="px-6 py-4 text-sm text-white/40">
+                        {new Date(business.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Link
+                          href={`/admin/wbos/${linkId}`}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

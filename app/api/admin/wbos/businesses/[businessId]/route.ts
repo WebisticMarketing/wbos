@@ -35,6 +35,35 @@ export async function GET(
   try {
     const { businessId } = await params;
 
+    console.log("🔍 Fetching business with ID:", businessId);
+
+    // First verify the business exists
+    const businessExists = await prisma.wbosBusiness.findUnique({
+      where: { id: businessId },
+      select: { id: true, name: true, clientId: true },
+    });
+
+    console.log("📊 Business exists check:", businessExists);
+
+    if (!businessExists) {
+      // Try to find by clientId as fallback
+      const businessByClient = await prisma.wbosBusiness.findFirst({
+        where: { clientId: businessId },
+        select: { id: true, name: true },
+      });
+      
+      if (businessByClient) {
+        console.log("✅ Found business by clientId:", businessByClient.id);
+        // Redirect to correct ID
+        return NextResponse.redirect(new URL(`/admin/wbos/${businessByClient.id}`, req.url));
+      }
+      
+      return NextResponse.json(
+        { error: "Business not found", searchedId: businessId },
+        { status: 404 }
+      );
+    }
+
     const business = await prisma.wbosBusiness.findUnique({
       where: { id: businessId },
       include: {
@@ -65,18 +94,12 @@ export async function GET(
       },
     });
 
-    if (!business) {
-      return NextResponse.json(
-        { error: "Business not found" },
-        { status: 404 }
-      );
-    }
-
+    console.log("✅ Business fetched successfully:", business?.name);
     return NextResponse.json(business);
   } catch (error) {
-    console.error("Error fetching business:", error);
+    console.error("❌ Error fetching business:", error);
     return NextResponse.json(
-      { error: "Failed to fetch business" },
+      { error: "Failed to fetch business", details: (error as Error).message },
       { status: 500 }
     );
   }
