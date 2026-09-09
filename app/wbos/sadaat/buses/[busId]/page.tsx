@@ -83,6 +83,7 @@ export default function BusDetailPage() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
 
   const busId = params.busId as string;
+  const slug = params.slug as string; // Get the business slug from URL
 
   useEffect(() => {
     const tabParam = searchParams.get("tab") as TabType;
@@ -90,26 +91,45 @@ export default function BusDetailPage() {
       setActiveTab(tabParam);
     }
     fetchData();
-  }, [busId, searchParams]);
+  }, [busId, searchParams, slug]);
 
   const fetchData = async () => {
     try {
+      setLoading(true);
+      setError("");
+      
       // 🔹 Set document title
       const meRes = await fetch("/api/wbos/auth/me");
-      if (meRes.ok) {
-        const meData = await meRes.json();
-        if (meData.user?.businessName) {
-          document.title = `${meData.user.businessName} – Bus Details`;
-        }
+      if (!meRes.ok) {
+        // User not authenticated, redirect to login
+        router.push(`/login?redirect=/wbos/${slug}/buses/${busId}`);
+        return;
+      }
+      
+      const meData = await meRes.json();
+      if (meData.user?.businessName) {
+        document.title = `${meData.user.businessName} – Bus Details`;
       }
 
       const res = await fetch(`/api/wbos/sadaat/buses/${busId}`);
-      if (!res.ok) throw new Error("Failed to fetch");
+      if (!res.ok) {
+        if (res.status === 404) {
+          setError("Bus not found");
+        } else if (res.status === 401) {
+          // Unauthorized - redirect to login
+          router.push(`/login?redirect=/wbos/${slug}/buses/${busId}`);
+          return;
+        } else {
+          throw new Error("Failed to fetch bus data");
+        }
+        return;
+      }
+      
       const data = await res.json();
       setBus(data);
     } catch (error) {
       console.error("Error fetching bus:", error);
-      setError("Bus not found");
+      setError("Failed to load bus data");
     } finally {
       setLoading(false);
     }
