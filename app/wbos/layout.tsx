@@ -55,96 +55,15 @@ export default function WbosLayout({
     fetchUser();
   }, []);
 
-  // 🔹 Auth check - only redirect if token is truly invalid
-  useEffect(() => {
-    // Skip auth check on public pages
-    const publicPaths = ["/wbos/login", "/wbos/register", "/wbos/forgot-password", "/wbos/reset-password"];
-    if (publicPaths.some(p => pathname?.startsWith(p))) {
-      return;
-    }
-
-    let isMounted = true;
-    let redirectAttempted = false;
-
-    const checkAuth = async () => {
-      try {
-        // First try to refresh the token silently
-        const refreshRes = await fetch("/api/wbos/auth/refresh", {
-          method: "POST",
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache",
-          },
-        });
-        
-        // If refresh succeeded, we're good
-        if (refreshRes.ok) {
-          return;
-        }
-
-        // If refresh failed with 403 (suspended), logout immediately
-        if (refreshRes.status === 403) {
-          if (!redirectAttempted && isMounted) {
-            redirectAttempted = true;
-            await fetch("/api/wbos/auth/logout", { method: "POST" });
-            router.push("/wbos/login?error=suspended");
-          }
-          return;
-        }
-
-        // For other refresh failures (401, 500, network errors), 
-        // check if the current token is still valid before redirecting
-        const meRes = await fetch("/api/wbos/auth/me", {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache",
-          },
-        });
-
-        // If /me returns ok, user is still authenticated - don't redirect
-        if (meRes.ok) {
-          console.log("🔄 [AUTH] Token still valid despite refresh failure");
-          return;
-        }
-
-        // If /me returns 403 (suspended), logout
-        if (meRes.status === 403) {
-          if (!redirectAttempted && isMounted) {
-            redirectAttempted = true;
-            await fetch("/api/wbos/auth/logout", { method: "POST" });
-            router.push("/wbos/login?error=suspended");
-          }
-          return;
-        }
-
-        // Only redirect if both refresh AND /me failed with auth errors
-        if (!redirectAttempted && isMounted) {
-          redirectAttempted = true;
-          console.log("🔄 [AUTH] Redirecting to login - token invalid");
-          router.push("/wbos/login");
-        }
-      } catch (error) {
-        // Network errors or other exceptions - don't redirect unless we're sure
-        console.debug("Session check encountered error:", error);
-        // Don't redirect on network glitches - let the user continue if they have a valid cookie
-      }
-    };
-
-    // Initial session check
-    checkAuth();
-
-    // Refresh every 5 minutes to keep session alive (increased from 2 min to reduce unnecessary calls)
-    const intervalId = setInterval(() => {
-      if (isMounted) {
-        checkAuth();
-      }
-    }, 300000); // 5 minutes
-
-    return () => {
-      isMounted = false;
-      clearInterval(intervalId);
-    };
-  }, [router, pathname]);
+  // 🔹 Auth check - DISABLED to prevent aggressive logouts
+  // The user stays logged in until their token naturally expires or they hit an API error.
+  // Background checks were causing random logouts due to network blips on mobile/slow connections.
+  
+  // We removed the entire useEffect that was doing periodic auth checks.
+  // Now, auth is only checked when:
+  // 1. User manually navigates (the /me call on mount)
+  // 2. An API call returns 401 (handled by individual pages/APIs)
+  // This is much more stable for real-world usage.
 
   // 🔹 Redirect /wbos/sadaat to the user's own slug
   useEffect(() => {
