@@ -55,7 +55,7 @@ export default function WbosLayout({
     fetchUser();
   }, []);
 
-  // 🔹 Auth check (existing logic)
+  // 🔹 Auth check - only redirect if token is truly invalid
   useEffect(() => {
     // Skip auth check on public pages
     const publicPaths = ["/wbos/login", "/wbos/register", "/wbos/forgot-password", "/wbos/reset-password"];
@@ -64,10 +64,11 @@ export default function WbosLayout({
     }
 
     let isMounted = true;
+    let redirectAttempted = false;
 
-    const refreshSession = async () => {
+    const checkAuth = async () => {
       try {
-        // Try to refresh the token silently
+        // First try to refresh the token silently
         const refreshRes = await fetch("/api/wbos/auth/refresh", {
           method: "POST",
           cache: "no-store",
@@ -76,43 +77,68 @@ export default function WbosLayout({
           },
         });
         
-        if (!refreshRes.ok) {
-          // If refresh fails, check if it's a suspension or other auth issue
-          const res = await fetch("/api/wbos/auth/me", {
-            cache: "no-store",
-            headers: {
-              "Cache-Control": "no-cache",
-            },
-          });
+        // If refresh succeeded, we're good
+        if (refreshRes.ok) {
+          return;
+        }
 
-          if (res.status === 403) {
-            const logoutRes = await fetch("/api/wbos/auth/logout", {
-              method: "POST",
-            });
-            if (logoutRes.ok) {
-              router.push("/wbos/login?error=suspended");
-            }
-            return;
+        // If refresh failed with 403 (suspended), logout immediately
+        if (refreshRes.status === 403) {
+          if (!redirectAttempted && isMounted) {
+            redirectAttempted = true;
+            await fetch("/api/wbos/auth/logout", { method: "POST" });
+            router.push("/wbos/login?error=suspended");
           }
+          return;
+        }
 
-          if (!res.ok && res.status !== 403) {
-            router.push("/wbos/login");
+        // For other refresh failures (401, 500, network errors), 
+        // check if the current token is still valid before redirecting
+        const meRes = await fetch("/api/wbos/auth/me", {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        });
+
+        // If /me returns ok, user is still authenticated - don't redirect
+        if (meRes.ok) {
+          console.log("🔄 [AUTH] Token still valid despite refresh failure");
+          return;
+        }
+
+        // If /me returns 403 (suspended), logout
+        if (meRes.status === 403) {
+          if (!redirectAttempted && isMounted) {
+            redirectAttempted = true;
+            await fetch("/api/wbos/auth/logout", { method: "POST" });
+            router.push("/wbos/login?error=suspended");
           }
+          return;
+        }
+
+        // Only redirect if both refresh AND /me failed with auth errors
+        if (!redirectAttempted && isMounted) {
+          redirectAttempted = true;
+          console.log("🔄 [AUTH] Redirecting to login - token invalid");
+          router.push("/wbos/login");
         }
       } catch (error) {
-        console.debug("Session refresh failed:", error);
+        // Network errors or other exceptions - don't redirect unless we're sure
+        console.debug("Session check encountered error:", error);
+        // Don't redirect on network glitches - let the user continue if they have a valid cookie
       }
     };
 
     // Initial session check
-    refreshSession();
+    checkAuth();
 
-    // Refresh every 2 minutes to keep session alive
+    // Refresh every 5 minutes to keep session alive (increased from 2 min to reduce unnecessary calls)
     const intervalId = setInterval(() => {
       if (isMounted) {
-        refreshSession();
+        checkAuth();
       }
-    }, 120000); // 2 minutes
+    }, 300000); // 5 minutes
 
     return () => {
       isMounted = false;
